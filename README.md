@@ -2,13 +2,13 @@ ModBase is a template project for split disassemblies of old videogame
 software. This particular template targets GB and GBC software using the RGBDS
 development system.
 
-== Requirements ==
+## Requirements
 
 * Latest version of RGBDS
 * Python (any version)
 * make (probably GNU make)
 
-== Getting started ==
+## Getting started
 
 *If you wish to disassemble a game with multiple versions, please take a look
 at the section entitled Multiple Base ROMs.*
@@ -40,7 +40,7 @@ error, such as:
 You can diagnose these errors using hexdump -C, cmp --verbose, or any graphical
 hex editor with a compare feature.
 
-== Adding image resources ==
+## Adding image resources
 
 Almost every game will have image resources of some kind. ModBase-GB ships with
 support for three image resource types:
@@ -60,7 +60,8 @@ say, src/titlescreen/bg.png; then you can include it in an .asm file like so:
 If your resource is black-and-white, you may instead substitute .1bpp instead
 of .2bpp.
 
-=== Indexed color prohibition ===
+### Indexed color prohibition
+
 If you recieve an error such as:
 
     src/titlescreen/bg.png is an indexed PNG. Please convert it to truecolor or grayscale.
@@ -73,7 +74,7 @@ Strictly speaking, "unexpected results" are caused by the fact that rgbgfx uses
 the indexes of the PNG file directly to determine the indexes produced on the
 GB side; and *not* the grayscale values of those colors.
 
-=== Single-palette color images ===
+### Single-palette color images
 
 If your game contains an image resouce with it's own single palette, then you
 can store the image and color data in a single PNG file. You will need to
