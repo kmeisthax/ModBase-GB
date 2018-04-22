@@ -60,6 +60,23 @@ references from other *.asm files to this symbol will always indicate what
 directory a symbol's code is. Furthermore, exported labels should be CamelCased
 with a single _ separating the component from the rest of the label; while local
 labels should be always lowercase with an _ in lieu of spaces between words.
+Don't be afraid of long labels.
+
+Avoid long files with large amounts of code. The longer the file, the harder for
+people to scan through it. At the same time, a single *.asm file must have a
+clearly indicated purpose. If your game has a state machine, then you create a
+state_machine.asm file and put the state table and code in there. If your game
+has a custom scripting language with 300 opcodes, you may want to split up their
+implementations according to purpose. Perhaps something like:
+
+    src/scriptvm/opcodes/arithmetic.asm
+    src/scriptvm/opcodes/resource_ldr.asm
+    src/scriptvm/opcodes/sprite_choreo.asm
+    src/scriptvm/opcodes/playfield.asm
+
+This also demonstrates how you can group files within a subdirectory of a
+component. Just as long files are a detriment to readability, so are long
+directories. You do not have to prefix labels with both directories, however.
 
 Code within an *.asm file must be formatted correctly. Labels should be always
 indicated; there should be no memory locations scattered throughout the code.
