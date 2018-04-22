@@ -57,13 +57,26 @@ $(BUILD_DIR)/%.inc: %.inc
 	@mkdir -p $(dir $@)
 	@cp $< $@
 
-$(BUILD_DIR)/%.2bpp: %.png
+#These rules cover resources. You may add more below, if you want.
+#To include a resource, INCBIN it's build path (e.g. build/src/someimage.2bpp)
+$(BUILD_DIR)/%.color.2bpp $(BUILD_DIR)/%.color.gbcpal: %.color.png
 	@echo "Building" $<
+	@rm -f $@
+	@mkdir -p $(dir $*.color.2bpp)
+	@mkdir -p $(dir $*.gbcpal)
+	rgbgfx -d 2 -p $*.gbcpal -o $*.color.2bpp $<
+
+$(filter-out $(BUILD_DIR)/%.color.2bpp,$(BUILD_DIR)/%.2bpp): %.png
+	@echo "Building" $<
+	@$(TOOLS_DIR)/images/prohibit_indexed_png.sh $<
+	@rm -f $@
 	@mkdir -p $(dir $@)
 	@rgbgfx -d 2 -o $@ $<
 
 $(BUILD_DIR)/%.1bpp: %.png
 	@echo "Building" $<
+	@$(TOOLS_DIR)/images/prohibit_indexed_png.sh $<
+	@rm -f $@
 	@mkdir -p $(dir $@)
 	@rgbgfx -d 1 -o $@ $<
 
