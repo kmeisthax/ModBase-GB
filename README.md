@@ -96,4 +96,5 @@ color, and the generated image data will be indexed to match the palette. If
 your game does not fit this pattern, you will need to use an indexed color PNG.
 This is the only image format where using indexed color is safe, provided you
 ensure that the order of color indexes in the PNG match the indexes used by the
-game.
+game. You will need to make sure that your indexed color PNG contains exactly
+four entries in it's palette, and no more.
