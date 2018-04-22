@@ -62,9 +62,9 @@ $(BUILD_DIR)/%.inc: %.inc
 $(BUILD_DIR)/%.color.2bpp $(BUILD_DIR)/%.color.gbcpal: %.color.png
 	@echo "Building" $<
 	@rm -f $@
-	@mkdir -p $(dir $*.color.2bpp)
-	@mkdir -p $(dir $*.gbcpal)
-	rgbgfx -d 2 -p $*.gbcpal -o $*.color.2bpp $<
+	@mkdir -p $(dir $(BUILD_DIR)/$*.color.2bpp)
+	@mkdir -p $(dir $(BUILD_DIR)/$*.gbcpal)
+	@rgbgfx -d 2 -p $(BUILD_DIR)/$*.color.gbcpal -o $(BUILD_DIR)/$*.color.2bpp $<
 
 $(filter-out $(BUILD_DIR)/%.color.2bpp,$(BUILD_DIR)/%.2bpp): %.png
 	@echo "Building" $<
