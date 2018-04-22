@@ -40,6 +40,65 @@ error, such as:
 You can diagnose these errors using hexdump -C, cmp --verbose, or any graphical
 hex editor with a compare feature.
 
+### Convention is important!
+
+By our default Makefile configuration, src/ holds all disassembled game code.
+Furthermore, standard convention is to store all code and assets within specific
+component folders. For example, if your game had a titlescreen with image assets
+and UI code, then you would have the following files:
+
+    src/titlescreen/state_machine.asm
+    src/titlescreen/resources.asm
+    src/titlescreen/background_gfx.png
+    src/titlescreen/sprite_gfx.png
+    
+The purpose of grouping code and coupled assets together in component
+directories is to clearly indicate the relationship between the two. For the
+same reason, any labels declared in *.asm files should be prefixed with the
+name of the component directory the file exists within. This is so that
+references from other *.asm files to this symbol will always indicate what
+directory a symbol's code is. Furthermore, exported labels should be CamelCased
+with a single _ separating the component from the rest of the label; while local
+labels should be always lowercase with an _ in lieu of spaces between words.
+
+Code within an *.asm file must be formatted correctly. Labels should be always
+indicated; there should be no memory locations scattered throughout the code.
+All code should be indented with four spaces. An empty line should be added
+after every string of instructions that write memory or alter control flow.
+Conditional branches should include a label for the branch not taken. Don't be
+afraid to rename labels or do other sweeping refactors if the current set of
+labels don't accurately describe the function of the code. Use comments, but
+only to explain the purpose of an exported label, or where the behavior of the
+code isn't obvious from the labels and instructions in use.
+
+What looks more readable to you?
+
+    .start ;this runs every frame
+    call $2B2B
+    call statemachine
+    ld a, [$C420]
+    jr z, .nothing_todo
+    call linktx
+    .nothing_todo
+    halt ;this stops the game until an interrupt happens
+    jr .start
+    
+Or?
+
+    .game_loop
+        call LCDC_ExecDMA
+        call Game_StateMachine
+        
+        ld a, [W_SIO_Connected]
+        jr z, .no_link_connection
+        
+    .link_connection
+        call SIO_RunLinkTxDriver
+        
+    .no_link_connection
+        halt
+        jr .game_loop
+
 ### Multiple Base ROMs
 
 Some games may share code across multiple ROM images. For example, the game may
