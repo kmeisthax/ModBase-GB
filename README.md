@@ -36,9 +36,81 @@ error, such as:
 
     cmp build/Frozen_Bubble.gbc base/Frozen_Bubble.gbc
     build/Frozen_Bubble.gbc base/Frozen_Bubble.gbc differ: char 14, line 23
-    
+
 You can diagnose these errors using hexdump -C, cmp --verbose, or any graphical
 hex editor with a compare feature.
+
+### Multiple Base ROMs
+
+Some games may share code across multiple ROM images. For example, the game may
+have a 1.1 revision, or was released in multiple versions, or have multiple
+translations. In this case, you will need to modify the build system to be aware
+of multiple builds of the ROM image.
+
+First, you will need to declare a BASEROM and BUILDROM for each version of the
+game you want to build. Let's say your game had a US and EU release; you'd then
+have declarations like so:
+
+    BASEROM_US := ${BASE_DIR}/Tumiki_Fighters_(U).gb
+    BASEROM_EU := ${BASE_DIR}/Tumiki_Fighters_(E).gb
+    BUILDROM_US := ${BUILD_DIR}/Tumiki_Fighters_(U).gb
+    BUILDROM_EU := ${BUILD_DIR}/Tumiki_Fighters_(E).gb
+
+You will then need to duplicate the linking and comparison tasks to reference
+the new ROMs. Lines 24-38 of the Makefile contain the rules for linking and
+comparing ROMs. The $(BUILDROM) target will need to be duplicated into
+$(BUILDROM_US) and $(BUILDROM_EU) targets, with the $(BASEROM) overlay parameter
+changed to match the ROM being built. You will also need to change the compare
+target to run a comparison between both base ROMs and built ROMs; and change the
+rom target to require both ROMs to be built.
+
+Once you have finished these changes, your modifications should resemble the
+following example code (comments elided):
+
+    all: rom compare
+    
+    rom: $(BUILDROM_US) $(BUILDROM_EU)
+    
+    $(BUILDROM_US): $(OBJS:%.o=${BUILD_DIR}/%.o)
+    	rgblink -n $(@:.gbc=.sym) -m $(@:.gbc=.map) -O $(BASEROM_US) -o $@ $^
+    	rgbfix -v $@
+    
+    $(BUILDROM_EU): $(OBJS:%.o=${BUILD_DIR}/%.o)
+    	rgblink -n $(@:.gbc=.sym) -m $(@:.gbc=.map) -O $(BASEROM_EU) -o $@ $^
+    	rgbfix -v $@
+    
+    compare: rom
+    	cmp $(BUILDROM_US) $(BASEROM_US)
+    	cmp $(BUILDROM_EU) $(BASEROM_EU)
+
+This is suitable for building a project where you don't intend to disassemble
+any differences between the two ROMs - RGBDS's overlay feature will include them
+for you. However, if you do wish to do so, then you need to add different
+objects for each file. By convention, we store version-specific files in the
+src/versions path, so we configure $(OBJS) to exclude it. We then add EU and US
+specific variables, which only pull files from each individual versions'
+directories. You will still need to make sure these variables are included in
+$(OBJS_RGBASM) so that they will be targeted by the assembler, and to include
+each specific version variable as a source for each version's built ROM.
+
+All of that will look like this:
+
+    OBJS := $(patsubst %.asm,%.o,$(shell find src -type f -name "*.asm" -not -path "src/version/**"))
+    OBJS_US := $(patsubst %.asm,%.o,$(shell find src/version/us -type f -name "*.asm"))
+    OBJS_EU := $(patsubst %.asm,%.o,$(shell find src/version/eu -type f -name "*.asm"))
+    OBJS_RGBASM := ${OBJS} ${OBJS_US} ${OBJS_EU}
+    
+...and further down...
+    
+    $(BUILDROM_US): $(OBJS:%.o=${BUILD_DIR}/%.o) $(OBJS_US:%.o=${BUILD_DIR}/%.o)
+    	rgblink -n $(@:.gbc=.sym) -m $(@:.gbc=.map) -O $(BASEROM_US) -o $@ $^
+    	rgbfix -v $@
+    
+    $(BUILDROM_EU): $(OBJS:%.o=${BUILD_DIR}/%.o) $(OBJS_EU:%.o=${BUILD_DIR}/%.o)
+    	rgblink -n $(@:.gbc=.sym) -m $(@:.gbc=.map) -O $(BASEROM_EU) -o $@ $^
+    	rgbfix -v $@
+
+With that last change, you are now clear to build two ROMs.
 
 ## Adding image resources
 
